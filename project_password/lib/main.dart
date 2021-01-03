@@ -1,11 +1,26 @@
+/* AUTHOR: Ivanna Maric -- GamingBrowni @ GitHub
+*  TDDC73 - Interactive programming
+*
+*  Project: Password strength meter
+*  NOTE: This is like the least effective way of doing this, fyi.
+* */
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:project_password/passwordCheck.dart';
 
+// Global bools - used to change colors of the password criteria
+bool hasUppercase = false;
+bool hasLowercase = false;
+bool hasNumber = false;
+bool hasSpecialChar = false;
+bool acceptedLength = false;
+
 // GLOBAL CONSTANTS - values of 'barValue' which passwordCheck.dart also uses
-const double weak = 40.0;
-const double good = 100.0;
-const double strong = 175.0;
-const double unbeatable = 200.0;
+const double weak = 40.0;         // 20% of the bar
+const double good = 100.0;        // 50% of the bar
+const double strong = 170.0;      // 85% of the bar
+const double unbeatable = 200.0;  // 100% of the bar
 
 void main() {
   runApp(MaterialApp(
@@ -20,8 +35,9 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String password;
-  String passwordStrength = '';
+  String passwordStrength = 'Too short';
 
+  // Colors of the bar:
   Color barColor = Color(0xFFD6D6D6); // grey[350]
   Color barColorDefault = Color(0xFFD6D6D6); // grey[350]
   Color barColorRed = Color(0xFFF44336); // red
@@ -29,12 +45,22 @@ class _MyAppState extends State<MyApp> {
   Color barColorGreen = Color(0xFF76FF03); // lightGreenAccent
   Color barColorDarkGreen = Color(0xFF1B5E20); // green[900]
 
+  // Colors of the password criteria:
+  Color defaultColor = Color(0xFFD6D6D6);
+  Color acceptedColor = Color(0xFF1B5E20);
+  Color letterColor = Color(0xFFD6D6D6);
+  Color charColor = Color(0xFFD6D6D6);
+  Color numberColor = Color(0xFFD6D6D6);
+  Color specCharColor = Color(0xFFD6D6D6);
+
   double barValue = 0.0;
 
+  // 'Password passed!' button enabler
   bool buttonEnabled = false;
 
   @override
   Widget build(BuildContext context) {
+
     // Enable/disable button
     var _onPressed;
     if (buttonEnabled) {
@@ -96,66 +122,120 @@ class _MyAppState extends State<MyApp> {
                       child: TextField(
                         maxLines: 1,
                         obscureText: true,
+                        inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\-_!?"#%&()*+,:;<=>^]'))],
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                         ),
                         onChanged: (passwordInput) {
                           setState(() {
-                            // CALL passwordCheck & GET barValue
+                            // CALL 'passwordCheck' & GET 'barValue'
                             // 'barValue' determines the strength of the password
                             // Depending on 'barValue', change the appearance
-                            // & colors of text & strength-bar
+                            // & colors of text, strength-bar & criteria:
                             barValue = passwordCheck(passwordInput);
 
-                            // DEFAULT / NO INPUT YET
+                            // For debugging purposes
+                            //print('barValue is: $barValue');
+
+                            // DEFAULT / NO INPUT YET -------------------------
                             if (barValue == 0.0) {
                               barColor = barColorDefault;
-                              passwordStrength = '';
+                              passwordStrength = 'Too short';
                               buttonEnabled = false;
+
+                              // Change color of the password criteria text:
+                              letterColor = defaultColor;
+                              charColor = defaultColor;
+                              numberColor = defaultColor;
+                              specCharColor = defaultColor;
                             }
 
-                            // WEAK
+                            // WEAK -------------------------------------------
                             if (barValue == weak) {
                               // Change barColor
                               barColor = barColorRed;
                               // Change passwordStrength
                               passwordStrength = 'Weak';
                               // Change buttonEnabled true/false
-                              // if >OK → enable button, else false
+                              // if >=GOOD → enable button, else false
                               buttonEnabled = false;
+
+                              // PASSWORD CRITERIA COLORS:
+                              if(hasUppercase && hasLowercase){
+                                letterColor = acceptedColor;
+                              }
+                              if(hasNumber){
+                                numberColor = acceptedColor;
+                              }
+                              if(acceptedLength){
+                                charColor = acceptedColor;
+                              }
                             }
 
-                            // GOOD
+                            // GOOD -------------------------------------------
                             if (barValue == good) {
                               // Change barColor
                               barColor = barColorYellow;
                               // Change passwordStrength
                               passwordStrength = 'Good';
                               // Change buttonEnabled true/false
-                              // if >OK → enable button, else false
+                              // if >=GOOD → enable button, else false
                               buttonEnabled = true;
+
+                              // PASSWORD CRITERIA COLORS:
+                              charColor = acceptedColor;
+                              if(hasUppercase && hasLowercase){
+                                letterColor = acceptedColor;
+                              }
+                              if(hasNumber){
+                                numberColor = acceptedColor;
+                              }
                             }
 
-                            // STRONG
+                            // STRONG -----------------------------------------
                             if (barValue == strong) {
                               // Change barColor
                               barColor = barColorGreen;
                               // Change passwordStrength
                               passwordStrength = 'Strong';
                               // Change buttonEnabled true/false
-                              // if >OK → enable button, else false
+                              // if >=GOOD → enable button, else false
                               buttonEnabled = true;
+
+                              // PASSWORD CRITERIA COLORS:
+                              charColor = acceptedColor;
+                              if(hasUppercase && hasLowercase){
+                                letterColor = acceptedColor;
+                              }
+                              if(hasNumber){
+                                numberColor = acceptedColor;
+                              }
+                              if(hasSpecialChar){
+                                specCharColor = acceptedColor;
+                              }
                             }
 
-                            // UNBEATABLE
+                            // UNBEATABLE -------------------------------------
                             if (barValue == unbeatable) {
                               // Change barColor
                               barColor = barColorDarkGreen;
                               // Change passwordStrength
                               passwordStrength = 'Unbeatable';
                               // Change buttonEnabled true/false
-                              // if >OK → enable button, else false
+                              // if >=GOOD → enable button, else false
                               buttonEnabled = true;
+
+                              // PASSWORD CRITERIA COLORS:
+                              charColor = acceptedColor;
+                              if(hasUppercase && hasLowercase){
+                                letterColor = acceptedColor;
+                              }
+                              if(hasNumber){
+                                numberColor = acceptedColor;
+                              }
+                              if(hasSpecialChar){
+                                specCharColor = acceptedColor;
+                              }
                             }
                           });
                         },
@@ -228,20 +308,66 @@ class _MyAppState extends State<MyApp> {
                               ),
                             ],
                           ),
-
-                        /*
-                        Text(
-                          passwordStrength,
-                          style: TextStyle(
-                              fontSize: 16.0,
-                              letterSpacing: 2.0,
-                              fontWeight: FontWeight.bold,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 2.0
-                                ..color = Colors.grey[600]),
                         ),
-                        ),*/
+                      ),
+                    ],
+                  ),
+
+                  // --- HINT -------------------------------------------------
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:[
+                            Text(
+                              'Your password should contain:',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            SizedBox(height: 8.0),
+
+                            Text(
+                              'At least 8 characters',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: charColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            Text(
+                              'Uppercase & lowercase letters',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: letterColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            Text(
+                              'At least 1 number',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: numberColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            Text(
+                              'Special characters: -_!?"#%&()*+,:;<=>^',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: specCharColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -249,15 +375,18 @@ class _MyAppState extends State<MyApp> {
 
                   SizedBox(height: 50.0),
 
-                  // --- BUTTON ---
-                  // IF PASSWORD >= OK → ENABLE BUTTON
-                  Container(
-                    padding: EdgeInsets.fromLTRB(10.0, 5.0, 0, 5.0),
-                    alignment: Alignment.center,
-                    //color: Colors.blue[100],
-                    child: RaisedButton(
-                      onPressed: _onPressed,
+                  // --- BUTTON -----------------------------------------------
+                  // IF PASSWORD >= GOOD → ENABLE BUTTON
+                  RaisedButton(
+                    onPressed: _onPressed,
+                    textColor: Colors.white,
+                    padding: EdgeInsets.all(0.0),
+                    child: Container(
+                      padding: EdgeInsets.all(10.0),
+                      //alignment: Alignment.center,
+                      color: Colors.green,
                       child: Text('Password passed!'),
+                      //color: Colors.blue[100],
                     ),
                   ),
                 ],
