@@ -148,6 +148,19 @@ class _MyAppState extends State<MyApp> {
                               charColor = defaultColor;
                               numberColor = defaultColor;
                               specCharColor = defaultColor;
+
+                              if(hasUppercase && hasLowercase){
+                                letterColor = acceptedColor;
+                              }
+                              if(hasNumber){
+                                numberColor = acceptedColor;
+                              }
+                              if(hasSpecialChar){
+                                specCharColor = acceptedColor;
+                              }
+                              if(!acceptedLength){
+                                charColor = defaultColor;
+                              }
                             }
 
                             // WEAK -------------------------------------------
@@ -167,8 +180,14 @@ class _MyAppState extends State<MyApp> {
                               if(hasNumber){
                                 numberColor = acceptedColor;
                               }
+                              if(hasSpecialChar){
+                                specCharColor = acceptedColor;
+                              }
                               if(acceptedLength){
                                 charColor = acceptedColor;
+                              }
+                              else {
+                                charColor = defaultColor;
                               }
                             }
 
@@ -189,6 +208,9 @@ class _MyAppState extends State<MyApp> {
                               }
                               if(hasNumber){
                                 numberColor = acceptedColor;
+                              }
+                              if(hasSpecialChar){
+                                specCharColor = acceptedColor;
                               }
                             }
 
@@ -360,7 +382,7 @@ class _MyAppState extends State<MyApp> {
                             ),
 
                             Text(
-                              'Special characters: -_!?"#%&()*+,:;<=>^',
+                              'Special characters: - _ ! ? " # %  & ( ) * + , : ; < = > ^',
                               style: TextStyle(
                                 fontSize: 14.0,
                                 color: specCharColor,
